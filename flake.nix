@@ -39,6 +39,22 @@
         overlays = [ self.overlays.default ];
       };
 
+      odbcInstIni = pkgs.writeTextDir "odbcinst.ini" ''
+        [FreeTDS]
+        Driver = ${pkgs.lib.makeLibraryPath [ pkgs.freetds ]}/libtdsodbc.so
+        Threading = 1
+      '';
+
+      odbcIni = pkgs.writeTextDir "odbc.ini" ''
+        [freetds]
+        Driver = FreeTDS
+      '';
+
+      odbcSysIni = pkgs.symlinkJoin {
+        name = "odbc-config";
+        paths = [ odbcInstIni odbcIni ];
+      };
+
       backendDevDeps = with pkgs; [
         # impala UDFs
         clang_15
@@ -54,6 +70,9 @@
         duckdb
         # mysql
         mycli
+        # pyodbc setup debugging
+        # in particular: odbcinst -j
+        unixODBC
         # pyspark
         openjdk17_headless
         # postgres client
@@ -115,6 +134,9 @@
         MYSQL_PWD = "ibis";
         MSSQL_SA_PASSWORD = "1bis_Testing!";
         DRUID_URL = "druid://localhost:8082/druid/v2/sql";
+
+        # needed for mssql+pyodbc
+        ODBCSYSINI = "${odbcSysIni}";
 
         __darwinAllowLocalNetworking = true;
       };
