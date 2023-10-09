@@ -148,12 +148,12 @@ class BaseAlchemyBackend(BaseSQLBackend):
         if url is not None:
             return sa.engine.url.make_url(url)
 
-        user = user or getpass.getuser()
+        # user = user or getpass.getuser()
         return sa.engine.url.URL.create(
             driver,
             host=host,
             port=port,
-            username=user,
+            username=None,
             password=password,
             database=database,
             query=query or {},

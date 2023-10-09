@@ -36,11 +36,14 @@ class Backend(BaseAlchemyBackend, CanCreateDatabase, AlchemyCanCreateSchema):
         database: str | None = None,
         url: str | None = None,
         driver: str | None = None,
+        query: dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> None:
+        if query is None:
+            query = {}
         if driver is not None:
-            query = dict(driver=driver)
-        else:
-            query = None
+            query["driver"] = driver
+
         alchemy_url = self._build_alchemy_url(
             url=url,
             host=host,
@@ -52,7 +55,7 @@ class Backend(BaseAlchemyBackend, CanCreateDatabase, AlchemyCanCreateSchema):
             query=query,
         )
 
-        engine = sa.create_engine(alchemy_url, poolclass=sa.pool.StaticPool)
+        engine = sa.create_engine(alchemy_url, poolclass=sa.pool.StaticPool, connect_args=kwargs)
 
         @sa.event.listens_for(engine, "connect")
         def connect(dbapi_connection, connection_record):
